@@ -6,20 +6,24 @@ import { SyncMessage } from '../types';
  * Bridges different devices using Supabase Broadcast.
  */
 
-// Safe access to environment variables in the browser
-const getEnv = (key: string): string => {
-  try {
-    return (window as any).process?.env?.[key] || (process as any).env?.[key] || '';
-  } catch {
-    return '';
-  }
+interface MorningStarConfig {
+  supabaseUrl?: string;
+  supabaseKey?: string;
+}
+
+// Get config from window (injected by Netlify build command)
+const getInjectedConfig = (): MorningStarConfig => {
+  return (window as any).MORNINGSTAR_CONFIG || {};
 };
 
-const SUPABASE_URL = getEnv('SUPABASE_URL');
-const SUPABASE_ANON_KEY = getEnv('SUPABASE_ANON_KEY');
+const config = getInjectedConfig();
+const SUPABASE_URL = config.supabaseUrl || '';
+const SUPABASE_ANON_KEY = config.supabaseKey || '';
 
-// Helper to check if we have actual credentials
-const hasValidKeys = SUPABASE_URL.startsWith('https://') && SUPABASE_ANON_KEY.length > 20;
+const hasValidKeys = 
+  SUPABASE_URL && 
+  SUPABASE_URL.startsWith('https://') && 
+  SUPABASE_ANON_KEY.length > 20;
 
 type MessageHandler = (message: SyncMessage) => void;
 
@@ -32,11 +36,11 @@ class RealtimeService {
   constructor() {
     if (hasValidKeys) {
       this.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      console.log('%c[MorningStar] Realtime Engine Armed.', 'color: #22c55e; font-weight: bold;');
     } else {
-      console.info(
-        '%c[MorningStar] Supabase keys not detected.', 
-        'color: #ec4899; font-weight: bold;',
-        'Running in Local Mode. To enable cross-device play, add SUPABASE_URL and SUPABASE_ANON_KEY to your Netlify environment variables.'
+      console.warn(
+        '%c[MorningStar] Keys missing. Local-only mode active.', 
+        'color: #f59e0b; font-weight: bold;'
       );
     }
   }
@@ -60,7 +64,7 @@ class RealtimeService {
       })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`[Realtime] Global sync established for room: ${roomId}`);
+          console.log(`%c[Realtime] Connected to Room: ${roomId}`, 'color: #ec4899;');
         }
       });
   }
@@ -79,7 +83,7 @@ class RealtimeService {
       });
     }
 
-    // Always broadcast locally for same-browser tab syncing (fallback/dev)
+    // Always broadcast locally for same-browser tab syncing
     const localEvent = new CustomEvent('morningstar_local_sync', { detail: message });
     window.dispatchEvent(localEvent);
   }

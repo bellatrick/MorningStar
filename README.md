@@ -4,21 +4,21 @@ MorningStar is a collaborative 2-player question game focused on intimacy and sh
 
 ## 🚀 Quick Start (Netlify Deployment)
 
-This app is designed as a modern ESM-based React SPA, making it incredibly lightweight to deploy.
+This app is designed as a modern ESM-based React SPA.
 
 1. **Connect to Netlify**:
    - Push this code to a GitHub repository.
    - Link that repository to a new site on [Netlify](https://app.netlify.com).
-   - **Build Command**: Leave blank (or use `echo 'done'`).
+   - **Build Command**: Use the one provided in `netlify.toml` (it runs automatically).
    - **Publish Directory**: `.` (the root folder).
 
 2. **Configure Supabase Realtime**:
    - Create a free project at [supabase.com](https://supabase.com).
    - In Netlify, go to **Site Settings > Environment Variables**.
    - Add the following variables:
-     - `SUPABASE_URL`: Your Supabase Project URL.
-     - `SUPABASE_ANON_KEY`: Your Supabase Anon/Public Key.
-   - Re-deploy the site for the changes to take effect.
+     - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase Project URL.
+     - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase Anon/Public Key.
+   - **Trigger a new deploy** for the changes to take effect.
 
 ## 🛠 Tech Stack
 
@@ -33,7 +33,3 @@ This app is designed as a modern ESM-based React SPA, making it incredibly light
 2. **Invite**: Send the URL or the 6-digit code to your partner.
 3. **Guest**: Click "Join Existing Room" and enter the code.
 4. **Interact**: Answers are "Encrypted" (blurred) until **both** of you have submitted your response for that specific question. Once both are in, the truth is revealed.
-
-## 🔒 Security & Privacy
-
-MorningStar is designed as an ephemeral experience. While it uses Supabase to bridge connections, it primarily treats the two connected devices as the source of truth. Data is synchronized in real-time but is not stored in a permanent database by default in this MVP version.
