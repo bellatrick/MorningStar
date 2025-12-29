@@ -6,6 +6,7 @@ import { SyncMessage } from '../types';
  * Bridges different devices using Supabase Broadcast.
  */
 
+// These are typically injected by Netlify/Vercel at build-time or runtime
 const SUPABASE_URL = (process.env as any).SUPABASE_URL || '';
 const SUPABASE_ANON_KEY = (process.env as any).SUPABASE_ANON_KEY || '';
 
@@ -24,7 +25,11 @@ class RealtimeService {
     if (hasValidKeys) {
       this.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } else {
-      console.warn('[MorningStar] Supabase keys missing. Running in Local Sync mode only.');
+      console.info(
+        '%c[MorningStar] Supabase keys not detected.', 
+        'color: #ec4899; font-weight: bold;',
+        'Running in Local Mode. To enable cross-device play, add SUPABASE_URL and SUPABASE_ANON_KEY to your Netlify environment variables.'
+      );
     }
   }
 
@@ -45,17 +50,19 @@ class RealtimeService {
         const message = payload.payload as SyncMessage;
         this.handlers.forEach(handler => handler(message));
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log(`[Realtime] Global sync established for room: ${roomId}`);
+        }
+      });
   }
 
   subscribe(handler: MessageHandler) {
     this.handlers.add(handler);
-    // Return unsubscribe function
     return () => this.handlers.delete(handler);
   }
 
   send(message: SyncMessage) {
-    // If we have a real channel, broadcast it globally
     if (this.channel) {
       this.channel.send({
         type: 'broadcast',
@@ -64,12 +71,11 @@ class RealtimeService {
       });
     }
 
-    // Always broadcast locally for same-browser tab syncing (fallback)
+    // Always broadcast locally for same-browser tab syncing (fallback/dev)
     const localEvent = new CustomEvent('morningstar_local_sync', { detail: message });
     window.dispatchEvent(localEvent);
   }
 
-  // Setup a local listener that mimics the behavior of the global one
   listenLocal() {
     const handleLocal = (e: any) => {
       this.handlers.forEach(handler => handler(e.detail));

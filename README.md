@@ -1,24 +1,39 @@
-
 # MorningStar MVP
 
-MorningStar is a collaborative 2-player question game focused on intimacy and shared discovery.
+MorningStar is a collaborative 2-player question game focused on intimacy and shared discovery, built for global cross-device play.
 
-## Architecture
+## 🚀 Quick Start (Netlify Deployment)
 
-- **React 18**: Used for the frontend UI.
-- **Tailwind CSS**: Providing the dark, high-contrast visual theme (Zinc/Pink/Purple).
-- **BroadcastChannel API**: Implemented as the Realtime provider. It acts exactly like Supabase Realtime "Broadcast" mode, syncing state between tabs/clients on the same domain without requiring a backend for this demo environment.
-- **LocalStorage**: Handles persistence. Even on refresh, your answers and your role stay pinned to that specific `roomId`.
+This app is designed as a modern ESM-based React SPA, making it incredibly lightweight to deploy.
 
-## The Reveal Logic
+1. **Connect to Netlify**:
+   - Push this code to a GitHub repository.
+   - Link that repository to a new site on [Netlify](https://app.netlify.com).
+   - **Build Command**: Leave blank (or use `echo 'done'`).
+   - **Publish Directory**: `.` (the root folder).
 
-1. **Answer Submission**: When a user submits an answer, it is stored locally under their slot (`userA` or `userB`) and broadcasted via the Realtime channel.
-2. **State Sync**: The other client receives the broadcast and updates their local state. If the other user hasn't answered yet, the received answer remains hidden in the UI but present in the state.
-3. **The Trigger**: The `QuestionCard` component computes `isRevealed` as `!!(myAnswer && otherAnswer)`. 
-4. **Visuals**: Until `isRevealed` is true, the "Their Answer" box remains in a blurred/hidden state. Once both flags are truthy, CSS transitions trigger to smoothly reveal the content.
+2. **Configure Supabase Realtime**:
+   - Create a free project at [supabase.com](https://supabase.com).
+   - In Netlify, go to **Site Settings > Environment Variables**.
+   - Add the following variables:
+     - `SUPABASE_URL`: Your Supabase Project URL.
+     - `SUPABASE_ANON_KEY`: Your Supabase Anon/Public Key.
+   - Re-deploy the site for the changes to take effect.
 
-## How to use
-1. Open the app.
-2. Share the URL (including the hash) with a friend.
-3. One person picks **Player 1**, the other picks **Player 2**.
-4. Start answering questions!
+## 🛠 Tech Stack
+
+- **React 18**: UI Logic and state management.
+- **Supabase Realtime**: Handles the "Global Bridge" allowing a phone in London to sync with a phone in New York instantly.
+- **Tailwind CSS**: High-performance styling via CDN.
+- **LocalStorage**: Ensures your progress isn't lost if you accidentally close the browser tab.
+
+## 🎮 How to Play
+
+1. **Host**: Click "Start New Discovery". You'll get a unique 6-digit access code.
+2. **Invite**: Send the URL or the 6-digit code to your partner.
+3. **Guest**: Click "Join Existing Room" and enter the code.
+4. **Interact**: Answers are "Encrypted" (blurred) until **both** of you have submitted your response for that specific question. Once both are in, the truth is revealed.
+
+## 🔒 Security & Privacy
+
+MorningStar is designed as an ephemeral experience. While it uses Supabase to bridge connections, it primarily treats the two connected devices as the source of truth. Data is synchronized in real-time but is not stored in a permanent database by default in this MVP version.
