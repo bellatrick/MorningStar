@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build":  "echo \"window.MORNINGSTAR_CONFIG = { supabaseUrl: '$NEXT_PUBLIC_SUPABASE_URL', supabaseKey: '$NEXT_PUBLIC_SUPABASE_ANON_KEY' };\" > config.js",
     "preview": "vite preview"
   },
   "dependencies": {
