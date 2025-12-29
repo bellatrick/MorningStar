@@ -6,9 +6,17 @@ import { SyncMessage } from '../types';
  * Bridges different devices using Supabase Broadcast.
  */
 
-// These are typically injected by Netlify/Vercel at build-time or runtime
-const SUPABASE_URL = (process.env as any).SUPABASE_URL || '';
-const SUPABASE_ANON_KEY = (process.env as any).SUPABASE_ANON_KEY || '';
+// Safe access to environment variables in the browser
+const getEnv = (key: string): string => {
+  try {
+    return (window as any).process?.env?.[key] || (process as any).env?.[key] || '';
+  } catch {
+    return '';
+  }
+};
+
+const SUPABASE_URL = getEnv('SUPABASE_URL');
+const SUPABASE_ANON_KEY = getEnv('SUPABASE_ANON_KEY');
 
 // Helper to check if we have actual credentials
 const hasValidKeys = SUPABASE_URL.startsWith('https://') && SUPABASE_ANON_KEY.length > 20;
