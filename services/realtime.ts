@@ -6,19 +6,8 @@ import { SyncMessage } from '../types';
  * Bridges different devices using Supabase Broadcast.
  */
 
-interface MorningStarConfig {
-  supabaseUrl?: string;
-  supabaseKey?: string;
-}
-
-// Get config from window (injected by Netlify build command)
-const getInjectedConfig = (): MorningStarConfig => {
-  return (window as any).MORNINGSTAR_CONFIG || {};
-};
-
-const config = getInjectedConfig();
-const SUPABASE_URL = config.supabaseUrl || '';
-const SUPABASE_ANON_KEY = config.supabaseKey || '';
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 const hasValidKeys = 
   SUPABASE_URL && 
@@ -36,10 +25,10 @@ class RealtimeService {
   constructor() {
     if (hasValidKeys) {
       this.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      console.log('%c[MorningStar] Realtime Engine Armed.', 'color: #22c55e; font-weight: bold;');
+      console.log('%c[MorningStar] Realtime Engine Armed via process.env.', 'color: #22c55e; font-weight: bold;');
     } else {
       console.warn(
-        '%c[MorningStar] Keys missing. Local-only mode active.', 
+        '%c[MorningStar] Supabase keys missing in process.env. Local-only mode active.', 
         'color: #f59e0b; font-weight: bold;'
       );
     }
