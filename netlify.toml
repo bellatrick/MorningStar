@@ -1,5 +1,5 @@
 [build]
-  command = "echo \"window.MORNINGSTAR_CONFIG = { supabaseUrl: '$NEXT_PUBLIC_SUPABASE_URL', supabaseKey: '$NEXT_PUBLIC_SUPABASE_ANON_KEY' };\" > config.js"
+  command = "npm run build"
   publish = "."
 
 [[redirects]]
