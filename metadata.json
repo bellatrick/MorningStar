@@ -1,0 +1,5 @@
+{
+  "name": "MorningStar",
+  "description": "A 2-person question game where answers are revealed only when both players have submitted.",
+  "requestFramePermissions": []
+}
