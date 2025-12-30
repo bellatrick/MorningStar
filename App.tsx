@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
 import Admin from './components/Admin';
 import { ToastProvider, useToast } from './components/ToastProvider';
-import { PlayerRole } from './types';
+import { PlayerRole, RoomRow } from './types';
 import { db } from './services/supabase';
 
 const STORAGE_USER_ID = 'morningstar_uid';
@@ -13,6 +13,7 @@ const MainApp: React.FC = () => {
   const [userId, setUserId] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
   const [roomId, setRoomId] = useState<string>('');
+  const [activeRooms, setActiveRooms] = useState<RoomRow[]>([]);
   const [role, setRole] = useState<PlayerRole | null>(null);
   const [isJoined, setIsJoined] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -41,6 +42,24 @@ const MainApp: React.FC = () => {
       localStorage.setItem(STORAGE_USER_ID, newId);
     }
   }, []);
+
+  useEffect(() => {
+    if (userId && view === 'landing') {
+      const fetchRooms = async () => {
+        const { data } = await db.getUserRooms(userId);
+        if (data) setActiveRooms(data);
+      };
+      fetchRooms();
+    }
+  }, [userId, view]);
+
+  const handleResumeRoom = (room: RoomRow) => {
+    setRoomId(room.id);
+    const userRole = room.host_id === userId ? 'host' : 'guest';
+    setRole(userRole);
+    setIsJoined(true);
+    toast.success(`Resumed session: ${room.id}`);
+  };
 
   const handleCreateRoom = async () => {
     if (!userName) {
@@ -118,7 +137,9 @@ const MainApp: React.FC = () => {
           <span className="ms-star-icon">✦</span>
         </h1>
         <div className="ms-badge" style={{ display: 'inline-block', opacity: 0.6 }}>
-          {db.isCloud() ? 'Cloud Sync Active' : 'Local Discovery Mode'}
+          {db.isCloud() ? (
+            <span>Cloud Sync Active • {activeRooms.length} Sessions</span>
+          ) : 'Local Discovery Mode'}
         </div>
       </div>
 
@@ -143,6 +164,34 @@ const MainApp: React.FC = () => {
             >
               Join Existing Space
             </button>
+
+            {activeRooms.length > 0 && (
+              <div className="animate-in" style={{ marginTop: '1rem', borderTop: '1px solid var(--surface-border)', paddingTop: '1rem' }}>
+                <h3 style={{ fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-dim)', marginBottom: '1rem', letterSpacing: '0.1em' }}>
+                  Active Sessions ({activeRooms.length})
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '200px', overflowY: 'auto' }}>
+                  {activeRooms.map(room => {
+                    const myRole = room.host_id === userId ? 'Host' : 'Guest';
+                    return (
+                      <div key={room.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--surface-border)', padding: '0.75rem', borderRadius: '0.5rem' }}>
+                        <div>
+                          <div style={{ fontSize: '0.9rem', fontWeight: 700, fontFamily: 'monospace', letterSpacing: '0.1em' }}>{room.id}</div>
+                          <div style={{ fontSize: '0.6rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>Role: {myRole}</div>
+                        </div>
+                        <button
+                          onClick={() => handleResumeRoom(room)}
+                          className="ms-btn-primary"
+                          style={{ fontSize: '0.6rem', padding: '0.4rem 0.8rem', width: 'auto' }}
+                        >
+                          Resume →
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

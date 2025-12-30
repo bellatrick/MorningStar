@@ -124,5 +124,15 @@ export const db = {
       .from('questions')
       .delete()
       .eq('id', id);
+  },
+
+  async getUserRooms(userId: string) {
+    if (!supabase) return { data: [], error: new Error("Supabase not configured") };
+
+    return await supabase
+      .from('myrooms')
+      .select('*')
+      .or(`host_id.eq.${userId},guest_id.eq.${userId}`)
+      .order('created_at', { ascending: false });
   }
 };
