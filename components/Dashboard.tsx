@@ -22,6 +22,7 @@ const Dashboard: React.FC<DashboardProps> = ({ roomId, userId, userName, role, o
   const [partnerOnline, setPartnerOnline] = useState(false);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
   const [showQuestionForm, setShowQuestionForm] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [newQuestionText, setNewQuestionText] = useState('');
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -107,15 +108,13 @@ const Dashboard: React.FC<DashboardProps> = ({ roomId, userId, userName, role, o
 
   return (
     <div className="ms-container" style={{ paddingBottom: '8rem' }}>
-      <header className="animate-in" style={{ marginBottom: '3rem', borderBottom: '1px solid var(--surface-border)', paddingBottom: '2rem' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: '2rem' }}>
-          <div>
-            <button onClick={onLeave} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', fontSize: '0.6rem', fontWeight: 900, textTransform: 'uppercase', cursor: 'pointer', marginBottom: '1rem', letterSpacing: '0.1em' }}>
-              ← Exit Discovery
-            </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <h1 className="ms-logo" style={{ fontSize: '1.2rem', margin: 0 }}>Morning<span>Star</span><span className="ms-star-icon" style={{ fontSize: '1rem' }}>✦</span></h1>
-              <button
+      <header className="animate-in" style={{ marginBottom: '2rem', borderBottom: '1px solid var(--surface-border)', paddingBottom: '1.5rem' }}>
+
+        {/* Row 1: Brand, Room, Profile */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <h1 className="ms-logo" style={{ fontSize: '1.1rem', margin: 0 }}>Morning<span>Star</span><span className="ms-star-icon" style={{ fontSize: '0.9rem' }}>✦</span></h1>
+            <button
                 className="ms-badge"
                 onClick={() => {
                   navigator.clipboard.writeText(roomId);
@@ -128,49 +127,83 @@ const Dashboard: React.FC<DashboardProps> = ({ roomId, userId, userName, role, o
                   background: 'rgba(236, 72, 153, 0.1)',
                   border: '1px solid rgba(236, 72, 153, 0.3)',
                   transition: 'all 0.2s ease',
-                  fontSize: '0.7rem'
+                  fontSize: '0.65rem',
+                  padding: '0.25rem 0.5rem'
                 }}
               >
-                {roomId} 
-              </button>
-              <button
-                onClick={() => refreshData(true)}
-                disabled={isSyncing}
-                style={{ background: 'none', border: '1px solid var(--surface-border)', borderRadius: '0.5rem', color: isSyncing ? 'var(--primary-color)' : 'var(--text-dim)', fontSize: '0.6rem', padding: '0.25rem 0.5rem', cursor: 'pointer', textTransform: 'uppercase', fontWeight: 800 }}
-              >
-                {isSyncing ? 'Syncing...' : 'Sync'}
-              </button>
-              <button
-                onClick={() => setShowQuestionForm(!showQuestionForm)}
-                className="ms-btn-secondary"
-                style={{ fontSize: '0.6rem', padding: '0.25rem 0.75rem' }}
-              >
-                + Add Question
-              </button>
-            </div>
-            <div style={{ marginTop: '0.5rem', display: 'flex', gap: '1rem', fontSize: '0.6rem', color: 'var(--text-dark)', fontWeight: 900, textTransform: 'uppercase' }}>
-              <span>User: <span style={{ color: 'var(--text-dim)' }}>{userName}</span></span>
-              <span>Role: <span style={{ color: 'var(--text-dim)' }}>{role}</span></span>
-              <span>Last Sync: <span style={{ color: 'var(--text-dim)' }}>{formatTime(lastSynced)}</span></span>
-            </div>
+                {roomId}
+            </button>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-             <div style={{ background: 'rgba(0,0,0,0.3)', padding: '0.75rem 1.25rem', borderRadius: '1rem', border: '1px solid var(--surface-border)', display: 'flex', gap: '1rem' }}>
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--surface-border)', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-light)' }}
+            >
+              <span style={{ fontSize: '1rem' }}>👤</span>
+            </button>
+
+            {showProfileMenu && (
+              <div className="animate-in" style={{
+                position: 'absolute',
+                top: '120%',
+                right: 0,
+                width: '200px',
+                background: '#18181b',
+                border: '1px solid var(--surface-border)',
+                borderRadius: '0.75rem',
+                padding: '1rem',
+                zIndex: 40,
+                boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
+              }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem', borderBottom: '1px solid var(--surface-border)', paddingBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>{userName}</span>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>Role: {role}</span>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)' }}>Synced: {formatTime(lastSynced)}</span>
+                </div>
+                <button onClick={onLeave} style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', color: '#ef4444', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', padding: '0.25rem 0' }}>
+                  Sign Out / Exit
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Row 2: Stats & Partner */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+             <div style={{ background: 'rgba(0,0,0,0.3)', padding: '0.5rem 1rem', borderRadius: '0.75rem', border: '1px solid var(--surface-border)', display: 'flex', gap: '1rem' }}>
                 <div style={{ textAlign: 'center', paddingRight: '1rem', borderRight: '1px solid var(--surface-border)' }}>
-                   <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>{answeredCount}</div>
-                   <div style={{ fontSize: '0.5rem', color: 'var(--text-dark)', textTransform: 'uppercase' }}>Solved</div>
+                   <div style={{ fontSize: '1rem', fontWeight: 700 }}>{answeredCount}</div>
+                   <div style={{ fontSize: '0.45rem', color: 'var(--text-dark)', textTransform: 'uppercase' }}>Solved</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                   <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--primary-color)' }}>{revealedCount}</div>
-                   <div style={{ fontSize: '0.5rem', color: 'var(--primary-color)', opacity: 0.6, textTransform: 'uppercase' }}>Shared</div>
+                   <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--primary-color)' }}>{revealedCount}</div>
+                   <div style={{ fontSize: '0.45rem', color: 'var(--primary-color)', opacity: 0.6, textTransform: 'uppercase' }}>Shared</div>
                 </div>
              </div>
+
              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: partnerOnline ? '#22c55e' : '#27272a' }}></div>
-                <span style={{ fontSize: '0.6rem', color: 'var(--text-dark)', fontWeight: 900, textTransform: 'uppercase' }}>{partnerOnline ? 'Partner Linked' : 'Awaiting Link'}</span>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: partnerOnline ? '#22c55e' : '#27272a' }}></div>
+                <span style={{ fontSize: '0.55rem', color: 'var(--text-dark)', fontWeight: 900, textTransform: 'uppercase' }}>{partnerOnline ? 'Partner Linked' : 'Awaiting Link'}</span>
              </div>
-          </div>
+        </div>
+
+        {/* Row 3: Action Buttons */}
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <button
+              onClick={() => refreshData(true)}
+              disabled={isSyncing}
+              style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--surface-border)', borderRadius: '0.5rem', color: isSyncing ? 'var(--primary-color)' : 'var(--text-dim)', fontSize: '0.7rem', padding: '0.6rem', cursor: 'pointer', textTransform: 'uppercase', fontWeight: 800, textAlign: 'center' }}
+            >
+              {isSyncing ? 'Syncing...' : 'Sync'}
+            </button>
+            <button
+              onClick={() => setShowQuestionForm(!showQuestionForm)}
+              className="ms-btn-secondary"
+              style={{ flex: 1, fontSize: '0.7rem', padding: '0.6rem', textAlign: 'center' }}
+            >
+              + Add Question
+            </button>
         </div>
       </header>
 
