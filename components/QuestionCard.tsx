@@ -1,10 +1,13 @@
+
 import React, { useState } from 'react';
-import { Question, Answer, PlayerRole } from '../types';
+// Corrected imports: removed PlayerRole and added Answer
+import { Question, Answer } from '../types';
 
 interface QuestionCardProps {
   question: Question;
   answerState: Answer;
-  playerRole: PlayerRole;
+  // Changed from PlayerRole ('host'|'guest') to match the keys of the Answer interface
+  playerRole: 'userA' | 'userB';
   onAnswer: (text: string) => void;
 }
 

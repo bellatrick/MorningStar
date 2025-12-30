@@ -1,0 +1,28 @@
+/* 
+  Tailwind directives removed here to prevent browser errors.
+  The Tailwind Play CDN in index.html now handles these.
+*/
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar for a cleaner aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+::-webkit-scrollbar-thumb {
+  background: #18181b;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #27272a;
+}

@@ -4,25 +4,36 @@ export interface Question {
   text: string;
 }
 
+export interface AnswerRow {
+  room_id: string;
+  user_id: string;
+  question_id: string;
+  answer_text: string;
+  created_at?: string;
+}
+
+export interface RoomRow {
+  id: string;
+  host_id: string;
+  guest_id: string | null;
+  created_at?: string;
+}
+
+export type PlayerRole = 'host' | 'guest';
+
+// Added Answer interface to match QuestionCard expectations for local state mapping
 export interface Answer {
   userA: string | null;
   userB: string | null;
 }
 
-export type PlayerRole = 'userA' | 'userB';
-
-export interface RoomState {
-  roomId: string;
-  answers: Record<string, Answer>;
+// Added SyncMessage interface for the RealtimeService broadcast events
+export interface SyncMessage {
+  type: string;
+  payload: any;
 }
 
-export interface SyncMessage {
-  type: 'SUBMIT_ANSWER' | 'SYNC_REQUEST' | 'SYNC_RESPONSE' | 'LOBBY_PING' | 'LOBBY_PONG';
-  payload: {
-    questionId?: string;
-    role?: PlayerRole;
-    answer?: string;
-    fullState?: Record<string, Answer>;
-    userName?: string;
-  };
+export interface GameState {
+  myAnswers: Record<string, string>;
+  partnerAnswers: Record<string, string>;
 }
