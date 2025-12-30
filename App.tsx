@@ -93,37 +93,35 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-transparent">
-      <div className="mb-12 text-center animate-in fade-in zoom-in duration-1000">
-        <h1 className="text-3xl font-light tracking-[0.2em] text-white uppercase flex items-center justify-center">
-          Morning<span className="text-pink-500 font-normal">Star</span>
-          <span className="text-pink-400 ml-2 animate-star text-2xl">✦</span>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+      <div className="animate-in" style={{ textAlign: 'center', marginBottom: '3rem' }}>
+        <h1 className="ms-logo">
+          Morning<span>Star</span>
+          <span className="ms-star-icon">✦</span>
         </h1>
-        <div className="mt-4 px-4 py-1.5 bg-zinc-900/40 border border-zinc-800/60 rounded-full inline-block">
-          <span className="text-[9px] text-zinc-500 font-black uppercase tracking-[0.2em]">
-            {db.isCloud() ? 'Cloud Sync Active' : 'Local Discovery Mode'}
-          </span>
+        <div className="ms-badge" style={{ display: 'inline-block', opacity: 0.6 }}>
+          {db.isCloud() ? 'Cloud Sync Active' : 'Local Discovery Mode'}
         </div>
       </div>
 
-      <div className="w-full max-sm:px-0 max-w-sm bg-zinc-900/40 border border-zinc-800/60 p-10 sm:p-12 rounded-[2.5rem] backdrop-blur-xl shadow-2xl">
+      <div className="ms-card animate-in" style={{ width: '100%', maxWidth: '400px' }}>
         {view === 'landing' && (
-          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <button
               onClick={handleCreateRoom}
               disabled={loading}
-              className="w-full py-5 bg-white text-black font-bold text-[11px] tracking-[0.2em] uppercase rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+              className="ms-btn-primary"
             >
               {loading ? 'Establishing...' : 'Initiate Discovery'}
             </button>
-            <div className="flex items-center gap-4 py-2">
-              <div className="h-px flex-grow bg-zinc-800"></div>
-              <span className="text-[10px] text-zinc-600 font-black uppercase">OR</span>
-              <div className="h-px flex-grow bg-zinc-800"></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem 0' }}>
+              <div style={{ height: '1px', flexGrow: 1, background: 'var(--surface-border)' }}></div>
+              <span style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--text-dark)' }}>OR</span>
+              <div style={{ height: '1px', flexGrow: 1, background: 'var(--surface-border)' }}></div>
             </div>
             <button
               onClick={() => setView('lobby')}
-              className="w-full py-5 border border-zinc-800 text-zinc-400 font-bold text-[11px] tracking-[0.2em] uppercase rounded-2xl transition-all hover:border-zinc-700 hover:text-white"
+              className="ms-btn-secondary"
             >
               Join Existing Space
             </button>
@@ -131,17 +129,13 @@ const App: React.FC = () => {
         )}
 
         {view === 'onboarding' && (
-          <div className="animate-in fade-in slide-in-from-right-4">
-             <button 
-              onClick={handleBackToLanding}
-              className="mb-8 flex items-center gap-2 text-[9px] text-zinc-500 uppercase font-black tracking-widest hover:text-zinc-300 transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-              Go Back
-            </button>
-            <form onSubmit={handleUsernameSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Identity Tag</label>
+          <div className="animate-in">
+             <button onClick={handleBackToLanding} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', fontSize: '0.7rem', cursor: 'pointer', marginBottom: '1.5rem', fontWeight: 800, textTransform: 'uppercase' }}>
+               ← Go Back
+             </button>
+            <form onSubmit={handleUsernameSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.6rem', fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-dim)', marginBottom: '0.5rem', letterSpacing: '0.1em' }}>Identity Tag</label>
                 <input
                   type="text"
                   required
@@ -149,13 +143,10 @@ const App: React.FC = () => {
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
                   placeholder="Enter a username..."
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl p-4 text-white focus:outline-none focus:border-pink-500/50 transition-all"
+                  className="ms-input"
                 />
               </div>
-              <button
-                type="submit"
-                className="w-full py-5 bg-pink-600 text-white font-bold text-[11px] tracking-[0.2em] uppercase rounded-2xl transition-all hover:bg-pink-500"
-              >
+              <button type="submit" className="ms-btn-primary" style={{ background: 'var(--primary-color)', color: 'white' }}>
                 Confirm Identity
               </button>
             </form>
@@ -163,32 +154,25 @@ const App: React.FC = () => {
         )}
 
         {view === 'lobby' && (
-          <div className="animate-in fade-in slide-in-from-left-4">
-            <button 
-              onClick={handleBackToLanding}
-              className="mb-8 flex items-center gap-2 text-[9px] text-zinc-500 uppercase font-black tracking-widest hover:text-zinc-300 transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-              Go Back
-            </button>
-            <form onSubmit={handleJoinRoom} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Room Code</label>
+          <div className="animate-in">
+            <button onClick={handleBackToLanding} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', fontSize: '0.7rem', cursor: 'pointer', marginBottom: '1.5rem', fontWeight: 800, textTransform: 'uppercase' }}>
+               ← Go Back
+             </button>
+            <form onSubmit={handleJoinRoom} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.6rem', fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-dim)', marginBottom: '0.5rem', letterSpacing: '0.1em' }}>Room Code</label>
                 <input
                   type="text"
                   required
                   autoFocus
                   value={roomId}
                   onChange={(e) => setRoomId(e.target.value.toUpperCase())}
-                  placeholder="E.G. XJ92LK"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl p-5 text-white font-mono text-center text-2xl tracking-[0.3em] focus:outline-none focus:border-pink-500/50"
+                  placeholder="XJ92LK"
+                  className="ms-input"
+                  style={{ textAlign: 'center', fontSize: '1.5rem', letterSpacing: '0.3em', fontFamily: 'monospace' }}
                 />
               </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-5 bg-white text-black font-bold text-[11px] tracking-[0.2em] uppercase rounded-2xl transition-all disabled:opacity-50"
-              >
+              <button type="submit" disabled={loading} className="ms-btn-primary">
                 Enter Shared Discovery
               </button>
             </form>
