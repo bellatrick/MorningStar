@@ -1,4 +1,3 @@
-
 export interface Question {
   id: string;
   text: string;
@@ -21,16 +20,9 @@ export interface RoomRow {
 
 export type PlayerRole = 'host' | 'guest';
 
-// Added Answer interface to match QuestionCard expectations for local state mapping
 export interface Answer {
   userA: string | null;
   userB: string | null;
-}
-
-// Added SyncMessage interface for the RealtimeService broadcast events
-export interface SyncMessage {
-  type: string;
-  payload: any;
 }
 
 export interface GameState {

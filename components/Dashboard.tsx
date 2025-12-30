@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { PlayerRole, AnswerRow } from '../types';
 import { QUESTIONS } from '../constants';
 import { db } from '../services/supabase';
@@ -15,33 +15,69 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ roomId, userId, userName, role, onLeave }) => {
   const [answers, setAnswers] = useState<AnswerRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [partnerOnline, setPartnerOnline] = useState(false);
+  const [lastSynced, setLastSynced] = useState<Date | null>(null);
+  const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const refreshData = useCallback(async () => {
-    const { data: answerData } = await db.fetchAnswers(roomId);
-    if (answerData) {
-      setAnswers(answerData);
-    }
+  const refreshData = useCallback(async (showSyncIndicator = false) => {
+    // Only fetch if tab is active (saves thousands of requests on free tier)
+    if (document.hidden && !showSyncIndicator) return;
+
+    if (showSyncIndicator) setIsSyncing(true);
     
-    const { data: roomData } = await db.getRoom(roomId);
-    if (roomData?.guest_id) {
-      setPartnerOnline(true);
+    try {
+      const [answerRes, roomRes] = await Promise.all([
+        db.fetchAnswers(roomId),
+        db.getRoom(roomId)
+      ]);
+
+      if (answerRes.data) {
+        setAnswers(answerRes.data);
+      }
+      
+      if (roomRes.data?.guest_id) {
+        setPartnerOnline(true);
+      }
+      setLastSynced(new Date());
+    } catch (err) {
+      console.error("Sync error:", err);
+    } finally {
+      setLoading(false);
+      if (showSyncIndicator) {
+        // Minimum visual feedback time
+        setTimeout(() => setIsSyncing(false), 600);
+      }
     }
-    setLoading(false);
   }, [roomId]);
 
   useEffect(() => {
     refreshData();
-    // Poll every 30 seconds for new answers
-    const interval = setInterval(refreshData, 30000);
-    return () => clearInterval(interval);
+    
+    // Poll every 60 seconds (optimized for long-term play)
+    pollTimerRef.current = setInterval(() => {
+      refreshData(true);
+    }, 60000);
+
+    // Refresh automatically when user returns to tab
+    const handleVisibility = () => {
+      if (!document.hidden) refreshData(true);
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      if (pollTimerRef.current) clearInterval(pollTimerRef.current);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, [refreshData]);
 
   const handleAnswerSubmit = async (qId: string, text: string) => {
+    setIsSyncing(true);
     const { error } = await db.submitAnswer(roomId, userId, qId, text);
     if (!error) {
-      refreshData(); // Refresh immediately after submitting
+      await refreshData(true);
     }
+    setIsSyncing(false);
   };
 
   const getAnswerForQuestion = (qId: string) => {
@@ -59,6 +95,11 @@ const Dashboard: React.FC<DashboardProps> = ({ roomId, userId, userName, role, o
     const ans = getAnswerForQuestion(q.id);
     return !!(ans.mine && ans.partner);
   }).length;
+
+  const formatTime = (date: Date | null) => {
+    if (!date) return '--:--';
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
   return (
     <div className="min-h-screen pb-32 px-4 pt-6 max-w-6xl mx-auto">
@@ -79,12 +120,31 @@ const Dashboard: React.FC<DashboardProps> = ({ roomId, userId, userName, role, o
             <div className="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-zinc-900 border border-zinc-800 text-pink-500">
               {roomId}
             </div>
+            <button 
+              onClick={() => refreshData(true)}
+              disabled={isSyncing}
+              className={`flex items-center gap-2 px-3 py-1 rounded-lg border transition-all ${
+                isSyncing 
+                ? 'border-pink-500/50 text-pink-500' 
+                : 'border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300'
+              }`}
+            >
+              <svg className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+              <span className="text-[8px] font-black uppercase tracking-widest">
+                {isSyncing ? 'Syncing...' : 'Sync Now'}
+              </span>
+            </button>
           </div>
-          <p className="text-zinc-600 text-[9px] uppercase tracking-widest font-black">
-            User: <span className="text-zinc-300">{userName}</span> 
-            <span className="mx-2 opacity-20">•</span> 
-            {role === 'host' ? 'Host' : 'Guest'} Protocol
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-zinc-600 text-[9px] uppercase tracking-widest font-black">
+              User: <span className="text-zinc-300">{userName}</span> 
+              <span className="mx-2 opacity-20">•</span> 
+              {role === 'host' ? 'Host' : 'Guest'}
+            </p>
+            <span className="text-zinc-800 text-[9px] uppercase tracking-widest font-black">
+              Last Sync: <span className="text-zinc-600">{formatTime(lastSynced)}</span>
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-4">
@@ -101,16 +161,19 @@ const Dashboard: React.FC<DashboardProps> = ({ roomId, userId, userName, role, o
           <div className="flex items-center gap-2 pl-4 border-l border-zinc-900">
              <div className={`w-2 h-2 rounded-full ${partnerOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'bg-zinc-800 animate-pulse'}`}></div>
              <span className="text-[9px] text-zinc-700 uppercase font-black tracking-widest">
-               {partnerOnline ? 'Partner Active' : 'Waiting...'}
+               {partnerOnline ? 'Partner Linked' : 'Awaiting Link'}
              </span>
           </div>
         </div>
       </header>
 
       {loading ? (
-        <div className="flex justify-center items-center h-64 text-zinc-700 uppercase tracking-widest text-xs animate-pulse">Syncing Galaxy...</div>
+        <div className="flex flex-col justify-center items-center h-64 gap-4">
+          <div className="w-8 h-8 border-2 border-pink-500/20 border-t-pink-500 rounded-full animate-spin"></div>
+          <div className="text-zinc-700 uppercase tracking-widest text-[10px] font-black animate-pulse">Establishing Connection...</div>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-in fade-in duration-700">
           {QUESTIONS.map(q => {
             const { mine, partner } = getAnswerForQuestion(q.id);
             return (
@@ -118,7 +181,7 @@ const Dashboard: React.FC<DashboardProps> = ({ roomId, userId, userName, role, o
                 key={q.id}
                 question={q}
                 answerState={{ userA: mine, userB: partner }}
-                playerRole="userA" // In this unified component, userA always maps to "Me"
+                playerRole={role === 'host' ? 'userA' : 'userB'}
                 onAnswer={(text) => handleAnswerSubmit(q.id, text)}
               />
             );
