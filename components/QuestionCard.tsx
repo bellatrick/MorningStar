@@ -3,20 +3,16 @@ import { Question, Answer } from '../types';
 
 interface QuestionCardProps {
   question: Question;
-  answerState: Answer;
-  playerRole: 'userA' | 'userB';
+  myAnswer: string | null;
+  partnerAnswer: string | null;
   onAnswer: (text: string) => void;
 }
 
-const QuestionCard: React.FC<QuestionCardProps> = ({ question, answerState, playerRole, onAnswer }) => {
+const QuestionCard: React.FC<QuestionCardProps> = ({ question, myAnswer, partnerAnswer, onAnswer }) => {
   const [inputValue, setInputValue] = useState('');
 
-  const myAnswer = answerState[playerRole];
-  const otherRole = playerRole === 'userA' ? 'userB' : 'userA';
-  const otherAnswer = answerState[otherRole];
-  
-  const isRevealed = !!(myAnswer && otherAnswer);
-  const waitingForOther = !!(myAnswer && !otherAnswer);
+  const isRevealed = !!(myAnswer && partnerAnswer);
+  const waitingForOther = !!(myAnswer && !partnerAnswer);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,10 +63,10 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, answerState, play
         <div style={{ paddingTop: '1rem', borderTop: '1px solid rgba(63, 63, 70, 0.2)' }}>
           <label style={{ fontSize: '0.5rem', fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-dark)', marginBottom: '0.5rem', display: 'block', letterSpacing: '0.1em' }}>Partner Revelation</label>
           <div className={`ms-reveal-slot ${isRevealed ? 'active' : ''}`}>
-            {isRevealed ? otherAnswer : (
+            {isRevealed ? partnerAnswer : (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
                 <span>{waitingForOther ? "Awaiting partner..." : "Encrypted"}</span>
-                {!isRevealed && otherAnswer && (
+                {!isRevealed && partnerAnswer && (
                   <span style={{ color: 'var(--primary-color)', fontSize: '0.5rem', opacity: 0.6 }}>Presence Detected</span>
                 )}
               </div>

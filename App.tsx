@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
+import Admin from './components/Admin';
+import { ToastProvider, useToast } from './components/ToastProvider';
 import { PlayerRole } from './types';
 import { db } from './services/supabase';
 
 const STORAGE_USER_ID = 'morningstar_uid';
 const STORAGE_USER_NAME = 'morningstar_uname';
 
-const App: React.FC = () => {
+const MainApp: React.FC = () => {
+  const { toast } = useToast();
   const [userId, setUserId] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
   const [roomId, setRoomId] = useState<string>('');
@@ -14,6 +17,17 @@ const App: React.FC = () => {
   const [isJoined, setIsJoined] = useState(false);
   const [loading, setLoading] = useState(false);
   const [view, setView] = useState<'landing' | 'onboarding' | 'lobby'>('landing');
+  const [showAdmin, setShowAdmin] = useState(false);
+
+  // Check for admin route
+  useEffect(() => {
+    const checkAdminRoute = () => {
+      setShowAdmin(window.location.hash === '#admin');
+    };
+    checkAdminRoute();
+    window.addEventListener('hashchange', checkAdminRoute);
+    return () => window.removeEventListener('hashchange', checkAdminRoute);
+  }, []);
 
   useEffect(() => {
     const savedId = localStorage.getItem(STORAGE_USER_ID);
@@ -43,7 +57,7 @@ const App: React.FC = () => {
       setIsJoined(true);
     } else {
       console.error(error);
-      alert("Failed to create room.");
+      toast.error("Failed to create room.");
     }
     setLoading(false);
   };
@@ -66,10 +80,10 @@ const App: React.FC = () => {
         setRole('guest');
         setIsJoined(true);
       } else {
-        alert("Room is full.");
+        toast.error("Room is full.");
       }
     } else {
-      alert("Room not found. Check the code.");
+      toast.error("Room not found. Check the code.");
     }
     setLoading(false);
   };
@@ -79,7 +93,7 @@ const App: React.FC = () => {
     if (userName.trim()) {
       localStorage.setItem(STORAGE_USER_NAME, userName.trim());
       if (role === 'host') handleCreateRoom();
-      else setView('lobby');
+      else if (role === 'guest') handleJoinRoom(e);
     }
   };
 
@@ -87,6 +101,10 @@ const App: React.FC = () => {
     setView('landing');
     setRole(null);
   };
+
+  if (showAdmin) {
+    return <Admin />;
+  }
 
   if (isJoined && role) {
     return <Dashboard roomId={roomId} userId={userId} userName={userName} role={role} onLeave={() => setIsJoined(false)} />;
@@ -180,6 +198,14 @@ const App: React.FC = () => {
         )}
       </div>
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <ToastProvider>
+      <MainApp />
+    </ToastProvider>
   );
 };
 
