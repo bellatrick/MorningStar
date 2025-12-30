@@ -22,7 +22,7 @@ export const db = {
     if (!supabase) return { data: null, error: new Error("Supabase not configured") };
     
     return await supabase
-      .from('rooms')
+      .from('myRooms')
       .insert([{ id: roomId, host_id: hostId }])
       .select();
   },
@@ -31,7 +31,7 @@ export const db = {
     if (!supabase) return { data: null, error: new Error("Supabase not configured") };
 
     return await supabase
-      .from('rooms')
+      .from('myRooms')
       .update({ guest_id: guestId })
       .eq('id', roomId)
       .is('guest_id', null)
@@ -42,7 +42,7 @@ export const db = {
     if (!supabase) return { data: null, error: new Error("Supabase not configured") };
     
     return await supabase
-      .from('rooms')
+      .from('myRooms')
       .select('*')
       .eq('id', roomId)
       .single();
