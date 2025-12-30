@@ -3,12 +3,13 @@ import { Question, Answer } from '../types';
 
 interface QuestionCardProps {
   question: Question;
+  index: number;
   myAnswer: string | null;
   partnerAnswer: string | null;
   onAnswer: (text: string) => void;
 }
 
-const QuestionCard: React.FC<QuestionCardProps> = ({ question, myAnswer, partnerAnswer, onAnswer }) => {
+const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, myAnswer, partnerAnswer, onAnswer }) => {
   const [inputValue, setInputValue] = useState('');
 
   const isRevealed = !!(myAnswer && partnerAnswer);
@@ -24,7 +25,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, myAnswer, partner
   return (
     <div className={`ms-card ms-q-card ${isRevealed ? 'revealed' : ''}`}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-        <span className="ms-badge">Query #{question.id}</span>
+        <span className="ms-badge">Query #{index + 1}</span>
         {isRevealed && (
           <span style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--primary-color)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <span style={{ width: '4px', height: '4px', background: 'var(--primary-color)', borderRadius: '50%' }}></span>

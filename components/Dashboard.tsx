@@ -115,13 +115,30 @@ const Dashboard: React.FC<DashboardProps> = ({ roomId, userId, userName, role, o
             </button>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <h1 className="ms-logo" style={{ fontSize: '1.2rem', margin: 0 }}>Morning<span>Star</span><span className="ms-star-icon" style={{ fontSize: '1rem' }}>✦</span></h1>
-              <span className="ms-badge" style={{ color: 'var(--primary-color)' }}>{roomId}</span>
+              <button
+                className="ms-badge"
+                onClick={() => {
+                  navigator.clipboard.writeText(roomId);
+                  toast.success("Room code copied!");
+                }}
+                title="Click to copy"
+                style={{
+                  color: 'var(--primary-color)',
+                  cursor: 'pointer',
+                  background: 'rgba(236, 72, 153, 0.1)',
+                  border: '1px solid rgba(236, 72, 153, 0.3)',
+                  transition: 'all 0.2s ease',
+                  fontSize: '0.7rem'
+                }}
+              >
+                {roomId} 
+              </button>
               <button
                 onClick={() => refreshData(true)}
                 disabled={isSyncing}
                 style={{ background: 'none', border: '1px solid var(--surface-border)', borderRadius: '0.5rem', color: isSyncing ? 'var(--primary-color)' : 'var(--text-dim)', fontSize: '0.6rem', padding: '0.25rem 0.5rem', cursor: 'pointer', textTransform: 'uppercase', fontWeight: 800 }}
               >
-                {isSyncing ? 'Syncing...' : 'Sync Now'}
+                {isSyncing ? 'Syncing...' : 'Sync'}
               </button>
               <button
                 onClick={() => setShowQuestionForm(!showQuestionForm)}
@@ -164,12 +181,13 @@ const Dashboard: React.FC<DashboardProps> = ({ roomId, userId, userName, role, o
         </div>
       ) : (
         <div className="ms-grid animate-in">
-          {questions.map(q => {
+          {questions.map((q, i) => {
             const { mine, partner } = getAnswerForQuestion(q.id);
             return (
               <QuestionCard
                 key={q.id}
                 question={q}
+                index={i}
                 myAnswer={mine}
                 partnerAnswer={partner}
                 onAnswer={(text) => handleAnswerSubmit(q.id, text)}
