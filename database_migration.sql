@@ -42,3 +42,7 @@ INSERT INTO questions (id, text, created_at) VALUES
 ('32', 'How do you usually know when something is not right?', NOW()),
 ('33', 'What is something people often misunderstand about you?', NOW()),
 ('34', 'What pace feels right for building something real?', NOW());
+
+-- Add name columns for Admin User List
+ALTER TABLE myrooms ADD COLUMN host_name TEXT;
+ALTER TABLE myrooms ADD COLUMN guest_name TEXT;

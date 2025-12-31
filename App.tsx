@@ -20,6 +20,10 @@ const MainApp: React.FC = () => {
   const [view, setView] = useState<'landing' | 'onboarding' | 'lobby'>('landing');
   const [showAdmin, setShowAdmin] = useState(false);
 
+  // Recovery State
+  const [showRecovery, setShowRecovery] = useState(false);
+  const [recoveryId, setRecoveryId] = useState('');
+
   // Check for admin route
   useEffect(() => {
     const checkAdminRoute = () => {
@@ -69,7 +73,7 @@ const MainApp: React.FC = () => {
     }
     setLoading(true);
     const newRoom = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const { error } = await db.createRoom(newRoom, userId);
+    const { error } = await db.createRoom(newRoom, userId, userName);
     if (!error) {
       setRoomId(newRoom);
       setRole('host');
@@ -95,7 +99,7 @@ const MainApp: React.FC = () => {
         setRole('host');
         setIsJoined(true);
       } else if (!room.guest_id || room.guest_id === userId) {
-        await db.joinRoom(room.id, userId);
+        await db.joinRoom(room.id, userId, userName);
         setRole('guest');
         setIsJoined(true);
       } else {
@@ -113,6 +117,22 @@ const MainApp: React.FC = () => {
       localStorage.setItem(STORAGE_USER_NAME, userName.trim());
       if (role === 'host') handleCreateRoom();
       else if (role === 'guest') handleJoinRoom(e);
+    }
+  };
+
+  const handleRecoverySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (recoveryId.trim()) {
+      const recoveredId = recoveryId.trim();
+      setUserId(recoveredId);
+      localStorage.setItem(STORAGE_USER_ID, recoveredId);
+
+      // Reset state to refresh
+      setShowRecovery(false);
+      setRecoveryId('');
+      toast.success("Identity restored.");
+
+      // Trigger room fetch is automatic via useEffect [userId]
     }
   };
 
@@ -246,6 +266,42 @@ const MainApp: React.FC = () => {
           </div>
         )}
       </div>
+
+      {view === 'landing' && (
+        <button
+          onClick={() => setShowRecovery(true)}
+          style={{ marginTop: '2rem', background: 'none', border: 'none', color: 'var(--text-dim)', fontSize: '0.7rem', textDecoration: 'underline', cursor: 'pointer' }}
+        >
+          Lost access? Enter User ID manually
+        </button>
+      )}
+
+      {/* Recovery Modal */}
+      {showRecovery && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: '1.5rem' }}>
+            <div className="ms-card animate-in" style={{ width: '100%', maxWidth: '350px', border: '1px solid var(--primary-color)' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 300, marginBottom: '0.5rem' }}>Restore Identity</h3>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: '1.5rem' }}>Enter your User ID to regain access to your previous sessions.</p>
+
+              <form onSubmit={handleRecoverySubmit}>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  value={recoveryId}
+                  onChange={(e) => setRecoveryId(e.target.value)}
+                  placeholder="e.g. j9k2ms..."
+                  className="ms-input"
+                  style={{ marginBottom: '1rem', fontFamily: 'monospace' }}
+                />
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <button type="button" onClick={() => setShowRecovery(false)} className="ms-btn-secondary" style={{ flex: 1 }}>Cancel</button>
+                  <button type="submit" className="ms-btn-primary" style={{ flex: 1 }}>Restore</button>
+                </div>
+              </form>
+            </div>
+        </div>
+      )}
     </div>
   );
 };

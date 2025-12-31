@@ -18,21 +18,21 @@ export const db = {
   isReady: () => isConfigured,
   isCloud: () => true,
 
-  async createRoom(roomId: string, hostId: string) {
+  async createRoom(roomId: string, hostId: string, hostName: string) {
     if (!supabase) return { data: null, error: new Error("Supabase not configured") };
 
     return await supabase
       .from('myrooms')
-      .insert([{ id: roomId, host_id: hostId }])
+      .insert([{ id: roomId, host_id: hostId, host_name: hostName }])
       .select();
   },
 
-  async joinRoom(roomId: string, guestId: string) {
+  async joinRoom(roomId: string, guestId: string, guestName: string) {
     if (!supabase) return { data: null, error: new Error("Supabase not configured") };
 
     return await supabase
       .from('myrooms')
-      .update({ guest_id: guestId })
+      .update({ guest_id: guestId, guest_name: guestName })
       .eq('id', roomId)
       .is('guest_id', null)
       .select();

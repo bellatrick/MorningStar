@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { db } from '../services/supabase';
 import { RoomRow, Question } from '../types';
 import { useToast } from './ToastProvider';
@@ -32,7 +32,7 @@ const Admin: React.FC = () => {
   const { toast } = useToast();
   const [authenticated, setAuthenticated] = useState(false);
   const [riddleAnswer, setRiddleAnswer] = useState('');
-  const [activeTab, setActiveTab] = useState<'rooms' | 'questions'>('rooms');
+  const [activeTab, setActiveTab] = useState<'rooms' | 'questions' | 'users'>('rooms');
 
   const [rooms, setRooms] = useState<RoomRow[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -48,15 +48,37 @@ const Admin: React.FC = () => {
 
   const loadData = async () => {
     setLoading(true);
-    if (activeTab === 'rooms') {
+    if (activeTab === 'rooms' || activeTab === 'users') {
       const { data, error } = await db.getAllRooms();
       if (data && !error) setRooms(data);
-    } else {
+    }
+
+    if (activeTab === 'questions') {
       const { data, error } = await db.getAllQuestions();
       if (data && !error) setQuestions(data);
     }
     setLoading(false);
   };
+
+  const users = useMemo(() => {
+    const userMap = new Map<string, { name: string, lastSeen: string }>();
+    rooms.forEach(r => {
+      const date = r.created_at || '';
+      if (r.host_id) {
+        const existing = userMap.get(r.host_id);
+        if (!existing || (date > existing.lastSeen)) {
+           userMap.set(r.host_id, { name: r.host_name || 'Unknown', lastSeen: date });
+        }
+      }
+      if (r.guest_id) {
+         const existing = userMap.get(r.guest_id);
+         if (!existing || (date > existing.lastSeen)) {
+            userMap.set(r.guest_id, { name: r.guest_name || 'Unknown', lastSeen: date });
+         }
+      }
+    });
+    return Array.from(userMap.entries()).map(([id, data]) => ({ id, ...data }));
+  }, [rooms]);
 
   const handleRiddleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,6 +211,21 @@ const Admin: React.FC = () => {
         >
           Question Pool
         </button>
+        <button
+          onClick={() => setActiveTab('users')}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: activeTab === 'users' ? 'var(--primary-color)' : 'var(--text-dim)',
+            fontWeight: 900,
+            textTransform: 'uppercase',
+            cursor: 'pointer',
+            borderBottom: activeTab === 'users' ? '2px solid var(--primary-color)' : '2px solid transparent',
+            paddingBottom: '0.5rem'
+          }}
+        >
+          User List ({users.length})
+        </button>
       </div>
 
       {activeTab === 'rooms' && (
@@ -243,6 +280,42 @@ const Admin: React.FC = () => {
           ))}
         </div>
       )}
+
+      {activeTab === 'users' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="ms-card" style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem' }}>
+             <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: '1rem' }}>
+               Users collected from room history. Share User ID with users to help them recover lost sessions.
+             </p>
+             <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                  <thead>
+                    <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--surface-border)' }}>
+                      <th style={{ padding: '0.5rem', color: 'var(--text-dim)' }}>Name</th>
+                      <th style={{ padding: '0.5rem', color: 'var(--text-dim)' }}>User ID</th>
+                      <th style={{ padding: '0.5rem', color: 'var(--text-dim)' }}>Last Seen</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map(user => (
+                      <tr key={user.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <td style={{ padding: '0.75rem 0.5rem', fontWeight: 700 }}>{user.name}</td>
+                        <td style={{ padding: '0.75rem 0.5rem', fontFamily: 'monospace', color: 'var(--primary-color)' }}>{user.id}</td>
+                        <td style={{ padding: '0.75rem 0.5rem', color: 'var(--text-dim)' }}>{formatDate(user.lastSeen)}</td>
+                      </tr>
+                    ))}
+                    {users.length === 0 && (
+                      <tr>
+                        <td colSpan={3} style={{ padding: '2rem', textAlign: 'center', opacity: 0.5 }}>No users found yet.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+             </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

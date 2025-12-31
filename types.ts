@@ -15,6 +15,8 @@ export interface RoomRow {
   id: string;
   host_id: string;
   guest_id: string | null;
+  host_name?: string;
+  guest_name?: string;
   created_at?: string;
 }
 
